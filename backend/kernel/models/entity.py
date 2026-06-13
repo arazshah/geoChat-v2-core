@@ -2,72 +2,46 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-# Generic, language-neutral roles. The kernel does NOT know about
-# "بانک" or "restaurant"; it only knows roles and abstract semantic_type ids.
-EntityRole = Literal[
-    "target",       # what the user is looking for (e.g. banks)
-    "anchor",       # reference point of the search (e.g. Mazo restaurant)
-    "origin",       # start point (routing)
-    "destination",  # end point (routing)
-    "waypoint",     # intermediate point
-    "area",         # bounding area / region
-    "constraint",   # constraining entity
-    "filter",       # filter entity
-    "context",      # supportive context entity
-    "unknown",      # not yet classified
-]
-
-# Abstract geometry hint, provider-agnostic.
-GeometryHint = Literal[
-    "point",
-    "line",
-    "polygon",
-    "multipoint",
-    "multiline",
-    "multipolygon",
-    "unknown",
-]
+from backend.kernel.models.vocabulary import EntityRole, GeometryHint
 
 
 class Entity(BaseModel):
     """
     A language-neutral representation of an entity mentioned in a query.
 
-    The kernel never hardcodes domain meaning. `semantic_type` is just an
-    opaque id (e.g. "bank", "restaurant") that is defined/resolved by
-    semantic plugins, not by the kernel itself.
+    Design notes
+    ------------
+    - `role` and `geometry_hint` are stored as plain `str` (OPEN set).
+      Canonical values live in `vocabulary.EntityRole` / `GeometryHint`,
+      but plugins may introduce custom values without touching the kernel.
+    - `semantic_type` is an opaque id (e.g. "bank"); the kernel never
+      hardcodes its meaning. Semantic plugins define/resolve it.
+    - `provider_tags` is generic (not OSM-specific) for provider independence.
     """
 
     id: str = Field(default_factory=lambda: f"ent_{uuid4().hex}")
 
-    role: EntityRole = "unknown"
+    # Open string; defaults to canonical UNKNOWN role.
+    role: str = Field(default=EntityRole.UNKNOWN)
 
-    # The raw text fragment that produced this entity, if any.
     raw_text: str | None = None
-
-    # A specific proper name, if detected (e.g. "مازو", "بانک ملی").
     name: str | None = None
-
-    # Abstract semantic type id resolved by semantic plugins.
     semantic_type: str | None = None
 
-    # Provider-agnostic tags. Each plugin/provider may interpret these.
-    # Kept generic instead of OSM-specific on purpose.
     provider_tags: list[dict[str, str]] = Field(default_factory=list)
 
-    geometry_hint: GeometryHint = "unknown"
+    # Open string; defaults to canonical UNKNOWN geometry hint.
+    geometry_hint: str = Field(default=GeometryHint.UNKNOWN)
 
-    # Feature ids resolved against a data provider (filled during execution).
     resolved_feature_ids: list[str] = Field(default_factory=list)
 
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
 
-    # Free-form extension space for plugins.
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @property
