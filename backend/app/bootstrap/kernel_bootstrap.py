@@ -4,30 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from backend.adapters.geodata.dataset_loader import (
-    DEFAULT_DATASETS_DIR,
-    load_all_providers,
-)
-from backend.adapters.geodata.memory_geodata_provider import (
-    build_default_memory_provider,
-)
-from backend.components.composers.persian_template_composer import (
-    PersianTemplateResponseComposer,
-)
-from backend.components.parsers.rule_based_persian_parser import (
-    RuleBasedPersianQueryParser,
-)
-from backend.components.rankers.distance_ranker import DistanceRanker
-from backend.components.rankers.smart_scoring_ranker import SmartScoringRanker
-from backend.components.strategies.dataset_geodata_strategy import (
-    DatasetGeodataStrategy,
-)
-from backend.components.strategies.smart_fallback_radius_strategy import (
-    SmartFallbackRadiusStrategy,
-)
-from backend.kernel.registries.dataset_provider_registry import (
-    DatasetProviderRegistry,
-)
+from backend.adapters.geodata.dataset_loader import DEFAULT_DATASETS_DIR
+from backend.app.bootstrap.plugin_context import build_plugin_context
+from backend.app.bootstrap.plugin_loader import load_enabled_plugins
 from backend.kernel.runtime import KernelAppContainer, QueryPipeline
 
 
@@ -37,56 +16,11 @@ def build_kernel_container(
     """
     Build and configure the application kernel container.
 
-    Wires real OSM SQLite datasets when available, with an in-memory
-    fallback provider for development. Kernel internals are not modified here.
+    In Phase A, plugin registrations are delegated to plugin_loader.
     """
     container = KernelAppContainer()
-
-    registry = DatasetProviderRegistry()
-    sqlite_providers = load_all_providers(datasets_dir)
-    for dataset_id, provider in sqlite_providers.items():
-        registry.register_provider(dataset_id, provider)
-
-    memory_provider = build_default_memory_provider()
-
-    def resolve_provider(dataset_id: str | None):
-        if dataset_id:
-            provider = registry.get_provider(dataset_id)
-            if provider is not None:
-                return provider
-        return memory_provider
-
-    container.set_query_parser(RuleBasedPersianQueryParser())
-
-    base_geodata_strategy = DatasetGeodataStrategy(resolve_provider)
-
-    smart_fallback_strategy = SmartFallbackRadiusStrategy(
-        base_strategy=base_geodata_strategy,
-        min_results=1,
-        default_radius_m=3000,
-    )
-
-    # StrategyRegistry در هسته شما default ندارد.
-    # انتخاب strategy با select(query_ir) انجام می‌شود و اولین strategy قابل‌قبول انتخاب می‌شود.
-    container.strategies.register_strategy(smart_fallback_strategy)
-
-    container.rankers.register_ranker(
-        SmartScoringRanker(),
-        default=True,
-    )
-
-    container.rankers.register_ranker(
-        DistanceRanker(),
-        default=False,
-    )
-
-    container.composers.register_composer(
-        "persian_template_response_composer",
-        PersianTemplateResponseComposer(),
-        languages=["fa", "en"],
-        default=True,
-    )
-
+    context = build_plugin_context(datasets_dir=datasets_dir)
+    load_enabled_plugins(container=container, context=context)
     return container
 
 
