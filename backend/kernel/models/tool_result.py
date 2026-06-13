@@ -1,1 +1,72 @@
 # backend/kernel/models/tool_result.py
+
+from __future__ import annotations
+
+from typing import Any
+
+from pydantic import BaseModel, Field
+
+from backend.kernel.models.error_info import ErrorInfo
+
+
+class ToolResult(BaseModel):
+    """
+    Standard result envelope for kernel tools and pipeline components.
+
+    Every executable unit in the system (tools, strategies, parsers,
+    providers when wrapped) should return a ToolResult so the pipeline
+    can handle success and failure uniformly.
+    """
+
+    ok: bool
+    data: Any = None
+    error: ErrorInfo | None = None
+    warnings: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+
+    @classmethod
+    def success(
+        cls,
+        data: Any = None,
+        *,
+        warnings: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+        confidence: float | None = None,
+    ) -> "ToolResult":
+        """Create a successful result."""
+        return cls(
+            ok=True,
+            data=data,
+            error=None,
+            warnings=list(warnings or []),
+            metadata=dict(metadata or {}),
+            confidence=confidence,
+        )
+
+    @classmethod
+    def failure(
+        cls,
+        *,
+        code: str,
+        message: str,
+        details: dict[str, Any] | None = None,
+        recoverable: bool = True,
+        warnings: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+        confidence: float | None = None,
+    ) -> "ToolResult":
+        """Create a failed result with a structured error."""
+        return cls(
+            ok=False,
+            data=None,
+            error=ErrorInfo(
+                code=code,
+                message=message,
+                details=dict(details or {}),
+                recoverable=recoverable,
+            ),
+            warnings=list(warnings or []),
+            metadata=dict(metadata or {}),
+            confidence=confidence,
+        )
