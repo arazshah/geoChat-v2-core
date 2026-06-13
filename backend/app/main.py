@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from backend.app.api.routes.plugin_health import router as plugin_health_router
 from backend.app.api.routes.query import router as query_router
 from backend.app.bootstrap.kernel_bootstrap import (
     build_kernel_container,
@@ -50,6 +51,11 @@ def create_app() -> FastAPI:
 
     app.include_router(
         query_router,
+        prefix=settings.api_prefix,
+    )
+
+    app.include_router(
+        plugin_health_router,
         prefix=settings.api_prefix,
     )
 
