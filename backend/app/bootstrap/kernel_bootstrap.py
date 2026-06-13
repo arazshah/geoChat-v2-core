@@ -18,8 +18,12 @@ from backend.components.parsers.rule_based_persian_parser import (
     RuleBasedPersianQueryParser,
 )
 from backend.components.rankers.distance_ranker import DistanceRanker
+from backend.components.rankers.smart_scoring_ranker import SmartScoringRanker
 from backend.components.strategies.dataset_geodata_strategy import (
     DatasetGeodataStrategy,
+)
+from backend.components.strategies.smart_fallback_radius_strategy import (
+    SmartFallbackRadiusStrategy,
 )
 from backend.kernel.registries.dataset_provider_registry import (
     DatasetProviderRegistry,
@@ -34,8 +38,7 @@ def build_kernel_container(
     Build and configure the application kernel container.
 
     Wires real OSM SQLite datasets when available, with an in-memory
-    fallback provider for the development dataset. Kernel internals are
-    never modified here.
+    fallback provider for development. Kernel internals are not modified here.
     """
     container = KernelAppContainer()
 
@@ -54,13 +57,29 @@ def build_kernel_container(
         return memory_provider
 
     container.set_query_parser(RuleBasedPersianQueryParser())
-    container.strategies.register_strategy(
-        DatasetGeodataStrategy(resolve_provider),
+
+    base_geodata_strategy = DatasetGeodataStrategy(resolve_provider)
+
+    smart_fallback_strategy = SmartFallbackRadiusStrategy(
+        base_strategy=base_geodata_strategy,
+        min_results=1,
+        default_radius_m=3000,
     )
+
+    # StrategyRegistry در هسته شما default ندارد.
+    # انتخاب strategy با select(query_ir) انجام می‌شود و اولین strategy قابل‌قبول انتخاب می‌شود.
+    container.strategies.register_strategy(smart_fallback_strategy)
+
     container.rankers.register_ranker(
-        DistanceRanker(),
+        SmartScoringRanker(),
         default=True,
     )
+
+    container.rankers.register_ranker(
+        DistanceRanker(),
+        default=False,
+    )
+
     container.composers.register_composer(
         "persian_template_response_composer",
         PersianTemplateResponseComposer(),
