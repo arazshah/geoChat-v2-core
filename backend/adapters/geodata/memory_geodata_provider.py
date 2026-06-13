@@ -34,7 +34,12 @@ class MemoryGeodataProvider:
     def __init__(self, records: list[MemoryPlaceRecord]) -> None:
         self._records = records
 
-    def find_by_name(self, name: str) -> list[GeoFeature]:
+    def find_by_name(
+        self,
+        name: str,
+        *,
+        limit: int | None = None,
+    ) -> list[GeoFeature]:
         """Find features by exact or alias-based Persian name matching."""
         normalized = self._normalize_text(name)
 
@@ -47,6 +52,9 @@ class MemoryGeodataProvider:
             ):
                 matches.append(self._to_feature(record))
 
+        if limit is not None:
+            matches = matches[:limit]
+
         return matches
 
     def search_by_type(
@@ -55,6 +63,7 @@ class MemoryGeodataProvider:
         *,
         anchor: GeoFeature | None = None,
         radius_meters: float | None = None,
+        limit: int | None = None,
     ) -> list[GeoFeature]:
         """Search records by semantic feature type."""
         matches = [

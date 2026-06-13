@@ -8,7 +8,6 @@ from backend.kernel.models.vocabulary import (
     RelationKind,
 )
 
-
 # --- Entity tests ---
 
 def test_entity_defaults() -> None:

@@ -7,7 +7,6 @@ from backend.kernel.models.query_ir import (
     ParserInfo,
     QueryConstraints,
     QueryIR,
-    TimeRange,
 )
 from backend.kernel.models.spatial_relation import SpatialRelation
 from backend.kernel.models.vocabulary import (
@@ -15,7 +14,6 @@ from backend.kernel.models.vocabulary import (
     QueryIntent,
     RelationKind,
 )
-
 
 # ------------------------------------------------------------------ #
 # Helpers                                                             #

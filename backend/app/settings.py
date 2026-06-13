@@ -12,7 +12,7 @@ class AppSettings(BaseModel):
     app_version: str = "0.1.0"
     api_prefix: str = "/api"
     default_language: str = "fa"
-    default_dataset_id: str = "dev"
+    default_dataset_id: str = "urmia"
 
 
 def get_settings() -> AppSettings:

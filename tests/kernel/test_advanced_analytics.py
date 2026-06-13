@@ -1,10 +1,20 @@
 # tests/kernel/test_advanced_analytics.py
 
-from backend.kernel.models.query_ir import QueryIR, QueryConstraints
-from backend.kernel.models.datasource import DataSourceDescriptor, SourceType, StorageFormat
-from backend.kernel.models.analytics import AnalyticsResult, ScalarMetric, TabularData, SpatialAggregation, HistogramBin
-from backend.kernel.models.query_plan import QueryPlan, PlanStep, StepType
+from backend.kernel.models.analytics import (
+    AnalyticsResult,
+    HistogramBin,
+    ScalarMetric,
+    SpatialAggregation,
+    TabularData,
+)
+from backend.kernel.models.datasource import (
+    DataSourceDescriptor,
+    SourceType,
+    StorageFormat,
+)
 from backend.kernel.models.geo_response import GeoResponse
+from backend.kernel.models.query_ir import QueryIR
+from backend.kernel.models.query_plan import PlanStep, QueryPlan, StepType
 
 
 def test_complex_compound_query_ir() -> None:

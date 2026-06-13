@@ -38,7 +38,7 @@ def test_query_endpoint_success() -> None:
 
     assert payload["ok"] is True
     assert payload["data"]["metadata"]["strategy"] == (
-        "memory_geodata_strategy"
+        "dataset_geodata_strategy"
     )
     assert payload["data"]["metadata"]["dataset_id"] == "urmia"
     assert payload["data"]["metadata"]["composer"] == "persian_template"
