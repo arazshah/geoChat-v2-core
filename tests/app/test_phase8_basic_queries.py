@@ -28,7 +28,9 @@ def test_phase8_pharmacy_nearby_urmia_university() -> None:
     features = data["features"]
     assert len(features) > 0
 
-    target_features = [f for f in features if f.get("metadata", {}).get("role") == "target"]
+    target_features = [
+        f for f in features if f.get("metadata", {}).get("role") == "target"
+    ]
     assert len(target_features) > 0
     assert all(f["category"] == "pharmacy" for f in target_features)
 
@@ -52,7 +54,9 @@ def test_phase8_bank_nearby_urmia_university() -> None:
 
     data = payload["data"]
     features = data["features"]
-    target_features = [f for f in features if f.get("metadata", {}).get("role") == "target"]
+    target_features = [
+        f for f in features if f.get("metadata", {}).get("role") == "target"
+    ]
     assert all(f["category"] == "bank" for f in target_features)
 
 
@@ -75,7 +79,9 @@ def test_phase8_nearest_pharmacy() -> None:
 
     data = payload["data"]
     features = data["features"]
-    target_features = [f for f in features if f.get("metadata", {}).get("role") == "target"]
+    target_features = [
+        f for f in features if f.get("metadata", {}).get("role") == "target"
+    ]
     assert len(target_features) == 1
     assert target_features[0]["category"] == "pharmacy"
 
@@ -100,7 +106,9 @@ def test_phase8_hotel_nearby_returns_results() -> None:
 
     data = payload["data"]
     features = data["features"]
-    target_features = [f for f in features if f.get("metadata", {}).get("role") == "target"]
+    target_features = [
+        f for f in features if f.get("metadata", {}).get("role") == "target"
+    ]
     assert len(target_features) > 0
     assert all(f["category"] == "hotel" for f in target_features)
 

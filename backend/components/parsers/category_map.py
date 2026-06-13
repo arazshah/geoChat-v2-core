@@ -14,67 +14,83 @@ class CategoryEntry:
 
 CATEGORY_TABLE: tuple[CategoryEntry, ...] = (
     CategoryEntry(
-        "pharmacy", "داروخانه",
+        "pharmacy",
+        "داروخانه",
         ("داروخانه", "داروخانه ها", "داروخانه‌ها", "دارو"),
     ),
     CategoryEntry(
-        "bank", "بانک",
+        "bank",
+        "بانک",
         ("بانک", "بانک ها", "بانک‌ها", "شعبه بانک"),
     ),
     CategoryEntry(
-        "atm", "خودپرداز",
+        "atm",
+        "خودپرداز",
         ("خودپرداز", "عابربانک", "atm", "دستگاه عابربانک"),
     ),
     CategoryEntry(
-        "restaurant", "رستوران",
+        "restaurant",
+        "رستوران",
         ("رستوران", "رستوران ها", "رستوران‌ها", "غذاخوری", "اغذیه فروشی"),
     ),
     CategoryEntry(
-        "cafe", "کافه",
+        "cafe",
+        "کافه",
         ("کافه", "کافه ها", "کافه‌ها", "کافی شاپ", "قهوه خانه"),
     ),
     CategoryEntry(
-        "fuel", "پمپ بنزین",
+        "fuel",
+        "پمپ بنزین",
         ("پمپ بنزین", "جایگاه سوخت", "بنزین", "جایگاه", "پمپ بنزین‌ها"),
     ),
     CategoryEntry(
-        "hospital", "بیمارستان",
+        "hospital",
+        "بیمارستان",
         ("بیمارستان", "بیمارستان ها", "بیمارستان‌ها", "اورژانس"),
     ),
     CategoryEntry(
-        "clinic", "درمانگاه",
+        "clinic",
+        "درمانگاه",
         ("درمانگاه", "کلینیک", "مطب", "درمانگاه‌ها"),
     ),
     CategoryEntry(
-        "school", "مدرسه",
+        "school",
+        "مدرسه",
         ("مدرسه", "دبستان", "دبیرستان", "آموزشگاه", "مدرسه‌ها"),
     ),
     CategoryEntry(
-        "university", "دانشگاه",
+        "university",
+        "دانشگاه",
         ("دانشگاه", "دانشگاه‌ها", "دانشکده", "موسسه آموزش عالی"),
     ),
     CategoryEntry(
-        "mosque", "مسجد",
+        "mosque",
+        "مسجد",
         ("مسجد", "مساجد", "مسجد‌ها"),
     ),
     CategoryEntry(
-        "hotel", "هتل",
+        "hotel",
+        "هتل",
         ("هتل", "هتل ها", "هتل‌ها", "مهمانپذیر", "مسافرخانه", "اقامتگاه"),
     ),
     CategoryEntry(
-        "supermarket", "سوپرمارکت",
+        "supermarket",
+        "سوپرمارکت",
         ("سوپرمارکت", "فروشگاه", "سوپر", "هایپر", "هایپرمارکت"),
     ),
     CategoryEntry(
-        "park", "پارک",
+        "park",
+        "پارک",
         ("پارک", "پارک ها", "پارک‌ها", "بوستان", "فضای سبز"),
     ),
     CategoryEntry(
-        "fire_station", "آتش‌نشانی",
+        "fire_station",
+        "آتش‌نشانی",
         ("آتش نشانی", "آتش‌نشانی", "ایستگاه آتش نشانی"),
     ),
     CategoryEntry(
-        "police", "پلیس",
+        "police",
+        "پلیس",
         ("پلیس", "کلانتری", "نیروی انتظامی", "پاسگاه"),
     ),
 )
@@ -83,9 +99,7 @@ CATEGORY_TABLE: tuple[CategoryEntry, ...] = (
 _SYNONYM_INDEX: dict[str, str] = {}
 for _entry in CATEGORY_TABLE:
     for _synonym in _entry.synonyms:
-        _SYNONYM_INDEX[_synonym.lower().replace("\u200c", " ")] = (
-            _entry.semantic_type
-        )
+        _SYNONYM_INDEX[_synonym.lower().replace("\u200c", " ")] = _entry.semantic_type
 
 
 def detect_category(text: str) -> str | None:

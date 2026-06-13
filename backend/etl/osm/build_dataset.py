@@ -69,9 +69,7 @@ def main() -> None:
         msg = f"PBF file not found: {args.pbf}"
         raise FileNotFoundError(msg)
 
-    dataset_ids = (
-        list_dataset_ids() if args.dataset == "all" else [args.dataset]
-    )
+    dataset_ids = list_dataset_ids() if args.dataset == "all" else [args.dataset]
 
     total = 0
     for dataset_id in dataset_ids:

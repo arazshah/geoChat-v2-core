@@ -17,6 +17,7 @@ from backend.kernel.models.vocabulary import EntityRole, RelationKind
 # normalizer                                                           #
 # ------------------------------------------------------------------ #
 
+
 def test_normalize_arabic_letters() -> None:
     assert normalize("بانكها") == "بانکها"
     assert normalize("علي") == "علی"
@@ -39,6 +40,7 @@ def test_normalize_city_alias() -> None:
 # ------------------------------------------------------------------ #
 # category_map                                                         #
 # ------------------------------------------------------------------ #
+
 
 def test_detect_category_pharmacy() -> None:
     assert detect_category("داروخانه های اطراف") == "pharmacy"
@@ -72,6 +74,7 @@ def test_detect_category_none() -> None:
 # anchor_extractor                                                     #
 # ------------------------------------------------------------------ #
 
+
 def test_extract_anchor_basic() -> None:
     result = extract_anchor("داروخانه های اطراف دانشگاه ارومیه")
     assert result is not None
@@ -99,6 +102,7 @@ def test_extract_anchor_none() -> None:
 # intent_detector                                                      #
 # ------------------------------------------------------------------ #
 
+
 def test_intent_nearest() -> None:
     intent, conf = detect_intent("نزدیکترین داروخانه به دانشگاه")
     assert intent == "nearest"
@@ -125,6 +129,7 @@ def test_intent_search_default() -> None:
 # ------------------------------------------------------------------ #
 # full parser — metadata                                               #
 # ------------------------------------------------------------------ #
+
 
 @pytest.mark.asyncio
 async def test_parser_nearby_pharmacy() -> None:
@@ -188,6 +193,7 @@ async def test_parser_city_alias_normalized() -> None:
 # full parser — entities                                               #
 # ------------------------------------------------------------------ #
 
+
 @pytest.mark.asyncio
 async def test_parser_fills_entities_nearby() -> None:
     parser = RuleBasedPersianQueryParser()
@@ -217,6 +223,7 @@ async def test_parser_entity_has_label_in_metadata() -> None:
 # ------------------------------------------------------------------ #
 # full parser — relations                                              #
 # ------------------------------------------------------------------ #
+
 
 @pytest.mark.asyncio
 async def test_parser_fills_relation_nearby() -> None:
@@ -254,6 +261,7 @@ async def test_parser_no_relation_for_where_is() -> None:
 # ------------------------------------------------------------------ #
 # full parser — meta fields                                            #
 # ------------------------------------------------------------------ #
+
 
 @pytest.mark.asyncio
 async def test_parser_language_set() -> None:

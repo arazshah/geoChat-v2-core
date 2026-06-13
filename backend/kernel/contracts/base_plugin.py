@@ -12,7 +12,7 @@ from backend.kernel.models.query_ir import QueryIR
 class BasePlugin(ABC):
     """
     Abstract Base Class for Plugins.
-    
+
     Allows third-party components to extend the core query pipeline
     by hooking into pre-processing, parser enrichment, or post-processing.
     """

@@ -56,13 +56,11 @@ __all__ = [
     # Base / Common
     "ErrorInfo",
     "ToolResult",
-    
     # Vocabulary
     "QueryIntent",
     "RelationKind",
     "EntityRole",
     "GeometryHint",
-    
     # QueryIR
     "Entity",
     "SpatialRelation",
@@ -72,7 +70,6 @@ __all__ = [
     "AmbiguityInfo",
     "BoundingBox",
     "TimeRange",
-    
     # Data Sources & Planning
     "DataSourceDescriptor",
     "SourceType",
@@ -81,7 +78,6 @@ __all__ = [
     "QueryPlan",
     "PlanStep",
     "StepType",
-    
     # GeoFeature
     "GeoFeature",
     "GeoPoint",
@@ -90,14 +86,12 @@ __all__ = [
     "StructuredAddress",
     "SpatialMetrics",
     "DisplayInfo",
-    
     # Analytics
     "AnalyticsResult",
     "ScalarMetric",
     "TabularData",
     "SpatialAggregation",
     "HistogramBin",
-    
     # Response
     "GeoResponse",
     "FeatureGroup",

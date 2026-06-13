@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from backend.components.presentation.enricher import enrich_response
 from backend.kernel.contracts import BaseResponseComposer
 from backend.kernel.models import GeoFeature, GeoResponse, QueryIR
 
@@ -13,7 +14,7 @@ class PersianTemplateResponseComposer(BaseResponseComposer):
     Initial Persian response composer.
 
     It creates concise human-readable summaries from structured GeoResponse
-    objects without relying on an LLM.
+    objects without relying on an LLM, and enriches spatial outputs for UI.
     """
 
     async def compose(
@@ -23,6 +24,7 @@ class PersianTemplateResponseComposer(BaseResponseComposer):
         language: str = "fa",
         **kwargs: Any,
     ) -> GeoResponse:
+        # ۱. ابتدا خلاصه‌سازی متنی پاسخ
         if language != "fa":
             raw_response.user_message.summary = build_english_summary(
                 query_ir,
@@ -33,6 +35,9 @@ class PersianTemplateResponseComposer(BaseResponseComposer):
                 query_ir,
                 raw_response.features,
             )
+
+        # ۲. غنی‌سازی بصری و نقشه‌محور خروجی (Rich UI/Map Data Extraction)
+        raw_response = enrich_response(query_ir, raw_response)
 
         raw_response.metadata["composer"] = "persian_template"
         raw_response.metadata["language"] = language
@@ -52,6 +57,9 @@ def build_persian_summary(
     anchors = get_anchor_features(features)
 
     if not targets:
+        if anchor_name:
+            label = translate_type(target_type)
+            return f"هیچ موردی از «{label}» در اطراف «{anchor_name}» پیدا نشد."
         return "نتیجه‌ای برای درخواست شما پیدا نشد."
 
     if intent == "where_is":
@@ -102,20 +110,12 @@ def build_english_summary(
 
 def get_target_features(features: list[GeoFeature]) -> list[GeoFeature]:
     """Return non-anchor features."""
-    return [
-        feature
-        for feature in features
-        if feature.metadata.get("role") != "anchor"
-    ]
+    return [feature for feature in features if feature.metadata.get("role") != "anchor"]
 
 
 def get_anchor_features(features: list[GeoFeature]) -> list[GeoFeature]:
     """Return anchor features."""
-    return [
-        feature
-        for feature in features
-        if feature.metadata.get("role") == "anchor"
-    ]
+    return [feature for feature in features if feature.metadata.get("role") == "anchor"]
 
 
 def get_feature_name(feature: GeoFeature) -> str:

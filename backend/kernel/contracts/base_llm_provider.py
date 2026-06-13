@@ -11,7 +11,7 @@ from pydantic import BaseModel
 class BaseLLMProvider(ABC):
     """
     Abstract Base Class for Language Model Providers.
-    
+
     Decouples the core from specific model APIs (OpenAI, Anthropic, Ollama).
     Supports structured outputs (JSON/Pydantic) and standard text completions.
     """

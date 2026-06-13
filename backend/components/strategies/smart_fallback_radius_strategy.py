@@ -95,7 +95,9 @@ class SmartFallbackRadiusStrategy(BaseExecutionStrategy):
                 return response
 
         if last_response is not None:
-            max_radius = attempts[-1]["attempted_radius_m"] if attempts else original_radius
+            max_radius = (
+                attempts[-1]["attempted_radius_m"] if attempts else original_radius
+            )
 
             self._attach_fallback_metadata(
                 response=last_response,

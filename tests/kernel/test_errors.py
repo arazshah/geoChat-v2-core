@@ -54,14 +54,10 @@ def test_kernel_error_from_exception() -> None:
 
 
 def test_specific_error_codes() -> None:
-    assert KernelConfigurationError("x").code == (
-        "kernel_configuration_error"
-    )
+    assert KernelConfigurationError("x").code == ("kernel_configuration_error")
     assert KernelParsingError("x").code == "kernel_parsing_error"
     assert KernelLLMError("x").code == "kernel_llm_error"
-    assert KernelUnsupportedOperationError("x").code == (
-        "kernel_unsupported_operation"
-    )
+    assert KernelUnsupportedOperationError("x").code == ("kernel_unsupported_operation")
 
 
 def test_retryable_error_defaults() -> None:

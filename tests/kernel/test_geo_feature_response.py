@@ -19,6 +19,7 @@ from backend.kernel.models.geo_response import (
 # Helpers                                                             #
 # ------------------------------------------------------------------ #
 
+
 def _make_bank_feature(
     name: str = "بانک ملی",
     distance_m: float = 250.0,
@@ -55,6 +56,7 @@ def _make_bank_feature(
 # GeoPoint                                                            #
 # ------------------------------------------------------------------ #
 
+
 def test_geo_point_basic() -> None:
     p = GeoPoint(lon=45.07, lat=37.55)
 
@@ -68,10 +70,13 @@ def test_geo_point_basic() -> None:
 # GeoBoundingBox                                                      #
 # ------------------------------------------------------------------ #
 
+
 def test_bounding_box_center() -> None:
     bbox = GeoBoundingBox(
-        min_lon=44.0, min_lat=37.0,
-        max_lon=46.0, max_lat=38.0,
+        min_lon=44.0,
+        min_lat=37.0,
+        max_lon=46.0,
+        max_lat=38.0,
     )
 
     center = bbox.center
@@ -84,6 +89,7 @@ def test_bounding_box_center() -> None:
 # ------------------------------------------------------------------ #
 # GeoGeometry                                                         #
 # ------------------------------------------------------------------ #
+
 
 def test_geo_geometry_point_as_geojson() -> None:
     geom = GeoGeometry(type="Point", coordinates=[45.07, 37.55])
@@ -105,6 +111,7 @@ def test_geo_geometry_polygon() -> None:
 # ------------------------------------------------------------------ #
 # GeoFeature                                                          #
 # ------------------------------------------------------------------ #
+
 
 def test_geo_feature_defaults() -> None:
     feature = GeoFeature()
@@ -200,9 +207,12 @@ def test_geo_feature_as_geojson_no_geometry() -> None:
 # GeoResponse - factory methods                                       #
 # ------------------------------------------------------------------ #
 
+
 def test_geo_response_success_factory() -> None:
-    features = [_make_bank_feature("بانک ملی", 250, 1),
-                _make_bank_feature("بانک صادرات", 400, 2)]
+    features = [
+        _make_bank_feature("بانک ملی", 250, 1),
+        _make_bank_feature("بانک صادرات", 400, 2),
+    ]
 
     response = GeoResponse.success(
         features=features,
@@ -255,6 +265,7 @@ def test_geo_response_ambiguous_factory() -> None:
 # GeoResponse - accessors                                             #
 # ------------------------------------------------------------------ #
 
+
 def test_get_nearest_feature() -> None:
     features = [
         _make_bank_feature("بانک ملی", distance_m=500.0, rank=2),
@@ -271,9 +282,7 @@ def test_get_nearest_feature() -> None:
 
 
 def test_get_nearest_no_distance() -> None:
-    response = GeoResponse.success(
-        features=[GeoFeature(name="بدون فاصله")]
-    )
+    response = GeoResponse.success(features=[GeoFeature(name="بدون فاصله")])
 
     assert response.get_nearest() is None
 
@@ -296,6 +305,7 @@ def test_get_features_by_type() -> None:
 # ------------------------------------------------------------------ #
 # GeoResponse - groups                                                #
 # ------------------------------------------------------------------ #
+
 
 def test_feature_group() -> None:
     banks = [_make_bank_feature("بانک ملی"), _make_bank_feature("بانک صادرات")]
@@ -321,7 +331,7 @@ def test_geo_response_with_groups() -> None:
         groups=[
             FeatureGroup(id="banks", label="بانک‌ها", features=banks),
             FeatureGroup(id="restaurants", label="رستوران‌ها", features=restaurants),
-        ]
+        ],
     )
 
     assert response.has_groups is True
@@ -333,6 +343,7 @@ def test_geo_response_with_groups() -> None:
 # ------------------------------------------------------------------ #
 # GeoResponse - GeoJSON output                                        #
 # ------------------------------------------------------------------ #
+
 
 def test_as_geojson_feature_collection() -> None:
     features = [_make_bank_feature("بانک ملی"), _make_bank_feature("بانک صادرات")]
@@ -351,6 +362,7 @@ def test_as_geojson_feature_collection() -> None:
 # ------------------------------------------------------------------ #
 # GeoResponse - execution info                                        #
 # ------------------------------------------------------------------ #
+
 
 def test_execution_info() -> None:
     response = GeoResponse.success(
@@ -373,6 +385,7 @@ def test_execution_info() -> None:
 # GeoResponse - mutation helpers                                      #
 # ------------------------------------------------------------------ #
 
+
 def test_add_warning_and_error() -> None:
     response = GeoResponse.success(features=[])
 
@@ -388,6 +401,7 @@ def test_add_warning_and_error() -> None:
 # ------------------------------------------------------------------ #
 # Serialisation                                                       #
 # ------------------------------------------------------------------ #
+
 
 def test_geo_response_serialization_roundtrip() -> None:
     features = [_make_bank_feature("بانک ملی", 300.0, 1)]

@@ -47,9 +47,7 @@ class SpatialAggregation(BaseModel):
 
     zone_id_field: str | None = Field(
         default=None,
-        description=(
-            "Field identifying vector zones (e.g., 'neighbourhood_id')"
-        ),
+        description=("Field identifying vector zones (e.g., 'neighbourhood_id')"),
     )
     metric_name: str  # e.g., "average_surface_temp"
 

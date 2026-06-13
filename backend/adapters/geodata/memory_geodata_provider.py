@@ -46,10 +46,7 @@ class MemoryGeodataProvider:
         matches: list[GeoFeature] = []
         for record in self._records:
             candidates = [record.name, *record.aliases]
-            if any(
-                normalized in self._normalize_text(item)
-                for item in candidates
-            ):
+            if any(normalized in self._normalize_text(item) for item in candidates):
                 matches.append(self._to_feature(record))
 
         if limit is not None:
@@ -173,10 +170,7 @@ def haversine_distance_meters(
     delta_phi = radians(lat2 - lat1)
     delta_lambda = radians(lon2 - lon1)
 
-    a = (
-        sin(delta_phi / 2) ** 2
-        + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
-    )
+    a = sin(delta_phi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
     c = 2 * asin(sqrt(a))
 
     return earth_radius_m * c

@@ -11,7 +11,7 @@ from backend.kernel.models.query_ir import QueryIR
 class BaseRanker(ABC):
     """
     Abstract Base Class for Feature Rankers.
-    
+
     Orders and filters list of GeoFeatures based on spatial context,
     ratings, user preferences, and relevance to the original QueryIR.
     """

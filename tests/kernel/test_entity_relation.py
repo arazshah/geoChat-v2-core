@@ -10,6 +10,7 @@ from backend.kernel.models.vocabulary import (
 
 # --- Entity tests ---
 
+
 def test_entity_defaults() -> None:
     entity = Entity()
 
@@ -77,6 +78,7 @@ def test_entity_provider_tags() -> None:
 
 # --- SpatialRelation tests ---
 
+
 def test_spatial_relation_defaults() -> None:
     relation = SpatialRelation()
 
@@ -143,6 +145,7 @@ def test_spatial_relation_serialization() -> None:
 
 
 # --- Vocabulary sanity tests ---
+
 
 def test_vocabulary_enum_is_str() -> None:
     # StrEnum members must behave as plain strings.

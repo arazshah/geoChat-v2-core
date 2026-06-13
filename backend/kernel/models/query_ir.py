@@ -86,9 +86,7 @@ class QueryIR(BaseModel):
     """
 
     id: str = Field(default_factory=lambda: f"qir_{uuid4().hex}")
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # --- raw input ---
     raw_text: str = ""
@@ -106,10 +104,10 @@ class QueryIR(BaseModel):
     # --- advanced/analytical extensions ---
     # Nested sub-queries for joint/layered analysis
     sub_queries: list[QueryIR] = Field(default_factory=list)
-    
+
     # Specific datasets/databases targeted (empty means auto-routing)
     source_restrictions: list[str] = Field(default_factory=list)
-    
+
     # Custom hints to guide the planner (e.g. {"raster_resample": "bilinear"})
     execution_hints: dict[str, Any] = Field(default_factory=dict)
 

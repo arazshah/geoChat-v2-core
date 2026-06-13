@@ -194,9 +194,9 @@ class OsmSqliteGeodataProvider(BaseGeodataProvider):
             )
 
         enriched.sort(
-            key=lambda feat: feat.distance_m
-            if feat.distance_m is not None
-            else float("inf"),
+            key=lambda feat: (
+                feat.distance_m if feat.distance_m is not None else float("inf")
+            ),
         )
 
         if limit is not None:
@@ -261,10 +261,7 @@ class OsmSqliteGeodataProvider(BaseGeodataProvider):
         connection = self._connect()
 
         pattern = f"%{normalized}%"
-        sql = (
-            "SELECT * FROM pois "
-            "WHERE name LIKE ? OR name_fa LIKE ? OR name_en LIKE ?"
-        )
+        sql = "SELECT * FROM pois WHERE name LIKE ? OR name_fa LIKE ? OR name_en LIKE ?"
         params: list[Any] = [pattern, pattern, pattern]
 
         if limit is not None:
@@ -348,10 +345,7 @@ def haversine_distance_meters(
     delta_phi = radians(lat2 - lat1)
     delta_lambda = radians(lon2 - lon1)
 
-    a = (
-        sin(delta_phi / 2) ** 2
-        + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
-    )
+    a = sin(delta_phi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
     c = 2 * asin(sqrt(a))
 
     return earth_radius_m * c

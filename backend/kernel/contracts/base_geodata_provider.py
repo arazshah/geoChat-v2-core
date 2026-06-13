@@ -15,7 +15,7 @@ from backend.kernel.models.tool_result import ToolResult
 class BaseGeodataProvider(ABC):
     """
     Abstract Base Class for all Geodata Providers (Vector, Raster, GEE, etc.).
-    
+
     Ensures that any data engine can self-describe its capabilities and
     participate both in simple query resolution and complex QueryPlan DAGs.
     """
@@ -36,7 +36,7 @@ class BaseGeodataProvider(ABC):
     ) -> list[GeoFeature]:
         """
         Perform a standard vector/feature query using the QueryIR constraints.
-        
+
         This is used for simple, single-source vector lookups.
         """
         pass
@@ -49,7 +49,7 @@ class BaseGeodataProvider(ABC):
     ) -> ToolResult:
         """
         Execute an atomic step of a complex QueryPlan.
-        
+
         Args:
             step: The specific PlanStep to execute (e.g. zonal statistics).
             dependencies_results: Cached outputs from prior steps in the DAG

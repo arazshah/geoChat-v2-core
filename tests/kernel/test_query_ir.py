@@ -19,6 +19,7 @@ from backend.kernel.models.vocabulary import (
 # Helpers                                                             #
 # ------------------------------------------------------------------ #
 
+
 def _make_nearby_qir() -> QueryIR:
     """Simulate: 'بانک‌های اطراف رستوران مازو تا ۵۰۰ متر'"""
     target = Entity(
@@ -64,6 +65,7 @@ def _make_nearby_qir() -> QueryIR:
 # QueryIR defaults                                                    #
 # ------------------------------------------------------------------ #
 
+
 def test_query_ir_defaults() -> None:
     qir = QueryIR()
 
@@ -96,6 +98,7 @@ def test_query_ir_unique_ids() -> None:
 # ------------------------------------------------------------------ #
 # Entity accessors                                                    #
 # ------------------------------------------------------------------ #
+
 
 def test_get_targets_and_anchors() -> None:
     qir = _make_nearby_qir()
@@ -151,6 +154,7 @@ def test_get_entities_by_custom_role() -> None:
 # Relation accessors                                                  #
 # ------------------------------------------------------------------ #
 
+
 def test_get_relations_by_kind() -> None:
     qir = _make_nearby_qir()
 
@@ -178,6 +182,7 @@ def test_get_primary_relation_empty() -> None:
 # Constraints                                                         #
 # ------------------------------------------------------------------ #
 
+
 def test_constraints_radius() -> None:
     qir = _make_nearby_qir()
 
@@ -187,9 +192,7 @@ def test_constraints_radius() -> None:
 
 def test_constraints_open_filters() -> None:
     qir = QueryIR(
-        constraints=QueryConstraints(
-            filters={"min_seats": 10, "outdoor": True}
-        )
+        constraints=QueryConstraints(filters={"min_seats": 10, "outdoor": True})
     )
 
     assert qir.constraints.filters["min_seats"] == 10
@@ -200,8 +203,10 @@ def test_constraints_bbox() -> None:
     qir = QueryIR(
         constraints=QueryConstraints(
             bbox=BoundingBox(
-                min_lon=44.5, min_lat=37.4,
-                max_lon=45.0, max_lat=37.6,
+                min_lon=44.5,
+                min_lat=37.4,
+                max_lon=45.0,
+                max_lat=37.6,
             )
         )
     )
@@ -213,6 +218,7 @@ def test_constraints_bbox() -> None:
 # ------------------------------------------------------------------ #
 # Ambiguity                                                           #
 # ------------------------------------------------------------------ #
+
 
 def test_ambiguity_detection() -> None:
     qir = QueryIR(
@@ -232,6 +238,7 @@ def test_ambiguity_detection() -> None:
 # ------------------------------------------------------------------ #
 # Parser info                                                         #
 # ------------------------------------------------------------------ #
+
 
 def test_parser_info() -> None:
     qir = _make_nearby_qir()
@@ -261,6 +268,7 @@ def test_parser_info_llm_assisted() -> None:
 # Mutation helpers                                                    #
 # ------------------------------------------------------------------ #
 
+
 def test_add_warning() -> None:
     qir = QueryIR()
     qir.add_warning("anchor not resolved")
@@ -281,6 +289,7 @@ def test_add_report_step() -> None:
 # ------------------------------------------------------------------ #
 # Serialisation                                                       #
 # ------------------------------------------------------------------ #
+
 
 def test_serialization_roundtrip() -> None:
     qir = _make_nearby_qir()

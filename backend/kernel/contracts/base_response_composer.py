@@ -12,7 +12,7 @@ from backend.kernel.models.query_ir import QueryIR
 class BaseResponseComposer(ABC):
     """
     Abstract Base Class for Response Composers.
-    
+
     Generates rich, contextual, human-readable explanations and summaries
     based on the raw structured data contained within a GeoResponse.
     Usually powered by an LLM or template engine.
@@ -28,7 +28,7 @@ class BaseResponseComposer(ABC):
     ) -> GeoResponse:
         """
         Enrich a GeoResponse with natural language messages (UserMessage).
-        
+
         Args:
             query_ir: The original query intent and entity metadata.
             raw_response: The response containing raw features/analytics.

@@ -62,10 +62,10 @@ class MockParser(BaseQueryParser):
 async def test_geodata_provider_contract() -> None:
     provider = MockProvider()
     desc = provider.get_descriptor()
-    
+
     assert desc.id == "mock_db"
     assert desc.source_type == SourceType.VECTOR
-    
+
     features = await provider.query(QueryIR(raw_text="تست"))
     assert len(features) == 0
 
@@ -74,6 +74,6 @@ async def test_geodata_provider_contract() -> None:
 async def test_query_parser_contract() -> None:
     parser = MockParser()
     qir = await parser.parse("داروخانه های ارومیه", dataset_id="urmia")
-    
+
     assert qir.raw_text == "داروخانه های ارومیه"
     assert qir.dataset_id == "urmia"

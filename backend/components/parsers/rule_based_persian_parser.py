@@ -128,6 +128,7 @@ class RuleBasedPersianQueryParser(BaseQueryParser):
 # Entity builder                                                       #
 # ------------------------------------------------------------------ #
 
+
 def _build_entities(
     *,
     intent: str,
@@ -172,6 +173,7 @@ def _build_entities(
 # Relation builder                                                     #
 # ------------------------------------------------------------------ #
 
+
 def _build_relations(
     *,
     intent: str,
@@ -187,11 +189,7 @@ def _build_relations(
     if not targets or not anchors:
         return []
 
-    kind = (
-        RelationKind.NEAREST
-        if intent == "nearest"
-        else RelationKind.NEARBY
-    )
+    kind = RelationKind.NEAREST if intent == "nearest" else RelationKind.NEARBY
 
     return [
         SpatialRelation(
@@ -207,6 +205,7 @@ def _build_relations(
 # ------------------------------------------------------------------ #
 # Detection helpers                                                    #
 # ------------------------------------------------------------------ #
+
 
 def _detect_target_type_excluding_anchor(
     text: str,

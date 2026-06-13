@@ -22,8 +22,6 @@ class DistanceRanker(BaseRanker):
             features,
             key=lambda feature: (
                 feature.metadata.get("role") == "anchor",
-                feature.distance_m
-                if feature.distance_m is not None
-                else float("inf"),
+                feature.distance_m if feature.distance_m is not None else float("inf"),
             ),
         )

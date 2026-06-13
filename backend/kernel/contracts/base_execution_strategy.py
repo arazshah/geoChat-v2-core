@@ -12,7 +12,7 @@ from backend.kernel.models.query_ir import QueryIR
 class BaseExecutionStrategy(ABC):
     """
     Abstract Base Class for Execution Strategies.
-    
+
     Decides how a QueryIR is processed, optimized, routed to providers,
     executed (sequentially or in parallel via QueryPlans), and packaged.
     """
@@ -40,7 +40,7 @@ class BaseExecutionStrategy(ABC):
     ) -> GeoResponse:
         """
         Execute the QueryIR and produce a final unified GeoResponse.
-        
+
         This manages routing, planning (if compound), error handling,
         and population of execution metadata.
         """

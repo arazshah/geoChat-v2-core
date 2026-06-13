@@ -1,5 +1,6 @@
 # tests/kernel/test_kernel_exports.py
 
+
 def test_all_models_are_exported_from_package_root() -> None:
     """
     Ensure the kernel models package acts as a clean single-entry facade.
@@ -49,6 +50,6 @@ def test_all_models_are_exported_from_package_root() -> None:
     assert hasattr(m, "GeoResponse")
     assert hasattr(m, "FeatureGroup")
     assert hasattr(m, "ResponseStatus")
-    
+
     # Print the export count to confirm all 35 main exports are registered
     print(f"\nSuccessfully verified {len(m.__all__)} primary kernel exports.")

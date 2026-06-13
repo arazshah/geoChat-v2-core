@@ -25,8 +25,7 @@ class ToolRegistry(BaseRegistry[BaseTool]):
 
     def get_tool_schemas(self) -> dict[str, dict]:
         return {
-            name: tool.parameters_schema
-            for name, tool in self.list_pairs().items()
+            name: tool.parameters_schema for name, tool in self.list_pairs().items()
         }
 
     def describe_tools(self) -> list[dict[str, object]]:

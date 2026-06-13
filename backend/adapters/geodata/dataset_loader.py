@@ -16,10 +16,7 @@ def available_dataset_ids(
     if not datasets_dir.exists():
         return []
 
-    return sorted(
-        path.stem
-        for path in datasets_dir.glob("*.sqlite")
-    )
+    return sorted(path.stem for path in datasets_dir.glob("*.sqlite"))
 
 
 def load_provider(

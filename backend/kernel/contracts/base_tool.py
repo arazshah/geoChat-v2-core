@@ -11,7 +11,7 @@ from backend.kernel.models.tool_result import ToolResult
 class BaseTool(ABC):
     """
     Abstract Base Class for all Tools / Actions in the engine.
-    
+
     Allows plugins to register custom python-executable utilities
     (e.g. routing, geocoding, calculation) that can be called by LLMs
     or execution plans.

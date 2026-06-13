@@ -109,9 +109,9 @@ class MemoryGeodataStrategy(BaseExecutionStrategy):
 
         targets = sorted(
             targets,
-            key=lambda feature: feature.distance_m
-            if feature.distance_m is not None
-            else float("inf"),
+            key=lambda feature: (
+                feature.distance_m if feature.distance_m is not None else float("inf")
+            ),
         )
 
         if include_only_nearest:

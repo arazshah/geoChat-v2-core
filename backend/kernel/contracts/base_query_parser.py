@@ -11,7 +11,7 @@ from backend.kernel.models.query_ir import QueryIR
 class BaseQueryParser(ABC):
     """
     Abstract Base Class for Query Parsers.
-    
+
     Responsible for converting unstructured natural language user input
     into a structured QueryIR (Intermediate Representation).
     Can be implemented using rule-based engines, local NLP, or LLMs.
@@ -27,7 +27,7 @@ class BaseQueryParser(ABC):
     ) -> QueryIR:
         """
         Parse unstructured text query into a formal QueryIR.
-        
+
         Args:
             text: The raw user query in natural language.
             dataset_id: Contextual database target (e.g., 'urmia').

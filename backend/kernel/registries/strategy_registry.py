@@ -26,9 +26,7 @@ class StrategyRegistry(BaseRegistry[BaseExecutionStrategy]):
 
     def find_capable(self, query_ir: QueryIR) -> list[BaseExecutionStrategy]:
         return [
-            strategy
-            for strategy in self.list_items()
-            if strategy.can_handle(query_ir)
+            strategy for strategy in self.list_items() if strategy.can_handle(query_ir)
         ]
 
     def select(self, query_ir: QueryIR) -> BaseExecutionStrategy:

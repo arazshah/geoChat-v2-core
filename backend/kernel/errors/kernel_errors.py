@@ -102,8 +102,7 @@ class KernelComponentNotFoundError(KernelRegistryError):
             **dict(details or {}),
         }
         final_message = (
-            message
-            or f"Kernel component not found: {component_type} '{name}'"
+            message or f"Kernel component not found: {component_type} '{name}'"
         )
         super().__init__(
             final_message,

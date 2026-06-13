@@ -92,9 +92,7 @@ class GeoResponse(BaseModel):
     """
 
     id: str = Field(default_factory=lambda: f"res_{uuid4().hex}")
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # --- traceability ---
     query_ir_id: str | None = None
@@ -198,9 +196,7 @@ class GeoResponse(BaseModel):
         return cls(
             status="ambiguous",
             features=[],
-            user_message=UserMessage(
-                clarification_request=clarification_request
-            ),
+            user_message=UserMessage(clarification_request=clarification_request),
             query_ir_id=query_ir_id,
             **kwargs,
         )
@@ -216,12 +212,8 @@ class GeoResponse(BaseModel):
     @property
     def is_empty(self) -> bool:
         has_no_features = len(self.features) == 0
-        has_no_analytics = (
-            self.analytics is None or self.analytics.is_empty
-        )
-        return self.status == "empty" or (
-            has_no_features and has_no_analytics
-        )
+        has_no_analytics = self.analytics is None or self.analytics.is_empty
+        return self.status == "empty" or (has_no_features and has_no_analytics)
 
     @property
     def is_error(self) -> bool:
@@ -246,9 +238,7 @@ class GeoResponse(BaseModel):
     def get_nearest(self) -> GeoFeature | None:
         """Return the feature with the smallest distance_m, or None."""
         with_dist = [
-            f
-            for f in self.features
-            if f.spatial_metrics.distance_m is not None
+            f for f in self.features if f.spatial_metrics.distance_m is not None
         ]
         if not with_dist:
             return None

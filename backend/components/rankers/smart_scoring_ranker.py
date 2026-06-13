@@ -126,9 +126,7 @@ class SmartScoringRanker(BaseRanker):
             score = max(score, 1.0)
 
         query_words = [
-            word.strip()
-            for word in query_text.split()
-            if len(word.strip()) >= 2
+            word.strip() for word in query_text.split() if len(word.strip()) >= 2
         ]
 
         if query_words and any(word in feature_name for word in query_words):

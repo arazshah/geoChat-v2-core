@@ -27,9 +27,9 @@ class EntityRole(StrEnum):
     """Canonical entity roles. Open set: plugins may use custom strings too."""
 
     # --- primary search roles ---
-    TARGET = "target"                     # what the user is looking for
-    ANCHOR = "anchor"                     # reference point of the search
-    SECONDARY_TARGET = "secondary_target" # second target (comparisons)
+    TARGET = "target"  # what the user is looking for
+    ANCHOR = "anchor"  # reference point of the search
+    SECONDARY_TARGET = "secondary_target"  # second target (comparisons)
 
     # --- routing roles ---
     ORIGIN = "origin"
@@ -126,14 +126,14 @@ class QueryIntent(StrEnum):
     Defined here early so QueryIR (Phase 2.3) can reuse it. Open set.
     """
 
-    LOCATE = "locate"          # where is X
-    NEARBY = "nearby"          # X around Y
-    NEAREST = "nearest"        # nearest X to Y
-    WITHIN = "within"          # X within radius/area of Y
-    ROUTE = "route"            # route from A to B
-    COMPARE = "compare"        # compare X and Y
-    COUNT = "count"            # how many X
-    AGGREGATE = "aggregate"    # aggregate stats
-    FILTER = "filter"          # filtered search
-    SEARCH = "search"          # generic search
+    LOCATE = "locate"  # where is X
+    NEARBY = "nearby"  # X around Y
+    NEAREST = "nearest"  # nearest X to Y
+    WITHIN = "within"  # X within radius/area of Y
+    ROUTE = "route"  # route from A to B
+    COMPARE = "compare"  # compare X and Y
+    COUNT = "count"  # how many X
+    AGGREGATE = "aggregate"  # aggregate stats
+    FILTER = "filter"  # filtered search
+    SEARCH = "search"  # generic search
     UNKNOWN = "unknown"

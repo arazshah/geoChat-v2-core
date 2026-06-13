@@ -25,13 +25,11 @@ class DevResponseComposer(BaseResponseComposer):
     ) -> GeoResponse:
         if language == "fa":
             raw_response.user_message.summary = (
-                f"درخواست شما دریافت و از مسیر هسته پردازش شد: "
-                f"{query_ir.raw_text}"
+                f"درخواست شما دریافت و از مسیر هسته پردازش شد: {query_ir.raw_text}"
             )
         else:
             raw_response.user_message.summary = (
-                f"Your query was processed by the kernel pipeline: "
-                f"{query_ir.raw_text}"
+                f"Your query was processed by the kernel pipeline: {query_ir.raw_text}"
             )
 
         raw_response.metadata["composer"] = "dev"

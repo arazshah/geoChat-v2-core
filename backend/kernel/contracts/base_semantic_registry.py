@@ -10,7 +10,7 @@ from backend.kernel.models.geo_feature import DisplayInfo
 class BaseSemanticRegistry(ABC):
     """
     Abstract Base Class for managing and resolving semantic types.
-    
+
     Maps semantic keys (e.g. 'hospital', 'fuel') to UI display specs
     (icons, colors) and handles multilingual label mapping.
     """

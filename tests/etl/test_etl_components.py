@@ -90,8 +90,7 @@ def test_sqlite_writer_creates_and_inserts(tmp_path: Path) -> None:
 
     with sqlite3.connect(db_path) as connection:
         cursor = connection.execute(
-            "SELECT semantic_type, name, lat, lon, tags_json FROM pois "
-            "ORDER BY id",
+            "SELECT semantic_type, name, lat, lon, tags_json FROM pois ORDER BY id",
         )
         results = cursor.fetchall()
 
