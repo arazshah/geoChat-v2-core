@@ -108,7 +108,7 @@ class QueryIR(BaseModel):
 
     id: str = Field(default_factory=lambda: f"qir_{uuid4().hex}")
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(datetime.UTC)
     )
 
     # --- raw input (for logging/debug only, never for logic) ---
