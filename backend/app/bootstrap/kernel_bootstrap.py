@@ -2,27 +2,44 @@
 
 from __future__ import annotations
 
-from backend.components.dev.dev_composer import DevResponseComposer
-from backend.components.dev.dev_parser import DevQueryParser
-from backend.components.dev.dev_strategy import DevExecutionStrategy
+from backend.adapters.geodata.memory_geodata_provider import (
+    build_default_memory_provider,
+)
+from backend.components.composers.persian_template_composer import (
+    PersianTemplateResponseComposer,
+)
+from backend.components.parsers.rule_based_persian_parser import (
+    RuleBasedPersianQueryParser,
+)
+from backend.components.rankers.distance_ranker import DistanceRanker
+from backend.components.strategies.memory_geodata_strategy import (
+    MemoryGeodataStrategy,
+)
 from backend.kernel.runtime import KernelAppContainer, QueryPipeline
 
 
 def build_kernel_container() -> KernelAppContainer:
     """
-    Build and configure the kernel container for the application.
+    Build and configure the application kernel container.
 
-    Important:
-    This function wires external components into the kernel runtime.
-    It must not modify kernel internals.
+    This function wires external application components into the kernel
+    runtime. It must not modify kernel internals.
     """
+    memory_provider = build_default_memory_provider()
+
     container = KernelAppContainer()
 
-    container.set_query_parser(DevQueryParser())
-    container.strategies.register_strategy(DevExecutionStrategy())
+    container.set_query_parser(RuleBasedPersianQueryParser())
+    container.strategies.register_strategy(
+        MemoryGeodataStrategy(memory_provider),
+    )
+    container.rankers.register_ranker(
+        DistanceRanker(),
+        default=True,
+    )
     container.composers.register_composer(
-        "dev_response_composer",
-        DevResponseComposer(),
+        "persian_template_response_composer",
+        PersianTemplateResponseComposer(),
         languages=["fa", "en"],
         default=True,
     )

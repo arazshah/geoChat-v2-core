@@ -25,7 +25,7 @@ def test_query_endpoint_success() -> None:
         response = client.post(
             "/api/query",
             json={
-                "text": "داروخانه‌های اطراف دانشگاه ارومیه",
+                "text": "داروخانه‌های اطراف دانشگاه ارومیه تا ۵ کیلومتر",
                 "dataset_id": "urmia",
                 "language": "fa",
                 "session_id": "s1",
@@ -38,11 +38,11 @@ def test_query_endpoint_success() -> None:
 
     assert payload["ok"] is True
     assert payload["data"]["metadata"]["strategy"] == (
-        "dev_execution_strategy"
+        "memory_geodata_strategy"
     )
     assert payload["data"]["metadata"]["dataset_id"] == "urmia"
-    assert payload["data"]["metadata"]["composer"] == "dev"
-    assert "درخواست شما دریافت" in payload["data"]["user_message"]["summary"]
+    assert payload["data"]["metadata"]["composer"] == "persian_template"
+    assert "داروخانه" in payload["data"]["user_message"]["summary"]
 
 
 def test_query_endpoint_english_response() -> None:
@@ -63,9 +63,7 @@ def test_query_endpoint_english_response() -> None:
     payload = response.json()
 
     assert payload["ok"] is True
-    assert "Your query was processed" in (
-        payload["data"]["user_message"]["summary"]
-    )
+    assert "result" in payload["data"]["user_message"]["summary"].lower()
 
 
 def test_query_endpoint_validation_error() -> None:
