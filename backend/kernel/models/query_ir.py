@@ -38,16 +38,6 @@ class TimeRange(BaseModel):
 class QueryConstraints(BaseModel):
     """
     All non-spatial and spatial constraints derived from the query.
-
-    Design notes
-    ------------
-    - `radius_m` is the canonical radius. Language plugins convert
-      human units ("۵۰۰ متر", "2 km", "half a mile") to metres.
-    - `limit` caps result count; None means no explicit limit.
-    - `filters` is an open key/value store for domain-specific constraints
-      that are not modelled explicitly (provider-agnostic).
-    - `bbox` allows hard geographic clipping when the parser detects it.
-    - `time_range` supports temporal queries ("آینده", "باز بودن الان").
     """
 
     radius_m: float | None = Field(default=None, ge=0.0)
@@ -64,7 +54,6 @@ class QueryConstraints(BaseModel):
 class ParserInfo(BaseModel):
     """
     Metadata about which parser/NLU component produced this QueryIR.
-    Useful for debugging, A/B testing, and observability.
     """
 
     name: str
@@ -78,7 +67,6 @@ class ParserInfo(BaseModel):
 class AmbiguityInfo(BaseModel):
     """
     Signals ambiguity detected during parsing.
-    Strategy/pipeline can use this to decide on clarification flow.
     """
 
     is_ambiguous: bool = False
@@ -91,19 +79,10 @@ class QueryIR(BaseModel):
     """
     Intermediate Representation of a user query.
 
-    This is the language-neutral contract between language parsers/NLU
-    plugins and execution strategies. Once a QueryIR is produced, the
-    rest of the pipeline MUST NOT depend on the original language.
-
-    Design principles
-    -----------------
-    - Language-neutral: strings here are ids and codes, not natural text
-      (except `raw_text` which is kept for logging/debugging only).
-    - Intent and roles use the open-set canonical vocabulary.
-    - Entities and relations are first-class citizens, not buried in dicts.
-    - Constraints are strongly typed and unit-normalised (metres, etc.).
-    - Fully serialisable to JSON for caching, logging and API transport.
-    - Parser metadata is tracked for observability and debugging.
+    Extended for Advanced Analytics & Multi-Source Geospatial Fusion:
+    - Supports sub_queries for nested/compound analytics.
+    - Supports source_restrictions to target specific rasters/databases.
+    - Preserves compatibility with simple queries.
     """
 
     id: str = Field(default_factory=lambda: f"qir_{uuid4().hex}")
@@ -111,15 +90,12 @@ class QueryIR(BaseModel):
         default_factory=lambda: datetime.now(timezone.utc)
     )
 
-    # --- raw input (for logging/debug only, never for logic) ---
+    # --- raw input ---
     raw_text: str = ""
     language: str = "unknown"
 
     # --- primary intent ---
-    # Open string; use QueryIntent enum values for canonical intents.
     intent: str = Field(default=QueryIntent.UNKNOWN)
-
-    # Confidence of the overall query interpretation [0, 1].
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
 
     # --- core content ---
@@ -127,21 +103,31 @@ class QueryIR(BaseModel):
     relations: list[SpatialRelation] = Field(default_factory=list)
     constraints: QueryConstraints = Field(default_factory=QueryConstraints)
 
+    # --- advanced/analytical extensions ---
+    # Nested sub-queries for joint/layered analysis
+    sub_queries: list[QueryIR] = Field(default_factory=list)
+    
+    # Specific datasets/databases targeted (empty means auto-routing)
+    source_restrictions: list[str] = Field(default_factory=list)
+    
+    # Custom hints to guide the planner (e.g. {"raster_resample": "bilinear"})
+    execution_hints: dict[str, Any] = Field(default_factory=dict)
+
     # --- ambiguity tracking ---
     ambiguity: AmbiguityInfo = Field(default_factory=AmbiguityInfo)
 
     # --- parser provenance ---
     parser_info: ParserInfo | None = None
 
-    # --- pipeline context passed down from caller ---
+    # --- pipeline context ---
     dataset_id: str | None = None
     session_id: str | None = None
 
-    # --- processing notes and warnings (set during pipeline stages) ---
+    # --- processing notes and warnings ---
     warnings: list[str] = Field(default_factory=list)
     report_steps: list[str] = Field(default_factory=list)
 
-    # --- extension space for plugins ---
+    # --- extension space ---
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     # ------------------------------------------------------------------ #
@@ -174,8 +160,6 @@ class QueryIR(BaseModel):
     def get_primary_relation(self) -> SpatialRelation | None:
         """
         Return the single most relevant spatial relation.
-
-        Priority: nearby > nearest > within > first relation > None.
         """
         priority = [
             RelationKind.NEARBY,
@@ -187,6 +171,11 @@ class QueryIR(BaseModel):
             if matches:
                 return matches[0]
         return self.relations[0] if self.relations else None
+
+    @property
+    def is_compound(self) -> bool:
+        """True if this query contains multiple sub-queries."""
+        return len(self.sub_queries) > 0
 
     @property
     def is_ambiguous(self) -> bool:

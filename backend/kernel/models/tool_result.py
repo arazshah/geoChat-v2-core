@@ -33,7 +33,7 @@ class ToolResult(BaseModel):
         warnings: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
         confidence: float | None = None,
-    ) -> "ToolResult":
+    ) -> ToolResult:
         """Create a successful result."""
         return cls(
             ok=True,
@@ -55,7 +55,7 @@ class ToolResult(BaseModel):
         warnings: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
         confidence: float | None = None,
-    ) -> "ToolResult":
+    ) -> ToolResult:
         """Create a failed result with a structured error."""
         return cls(
             ok=False,
