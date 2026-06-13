@@ -11,6 +11,8 @@ from backend.kernel.runtime import KernelAppContainer
 PLUGIN_ID = "persian_template_composer"
 PLUGIN_VERSION = "1.0.0"
 PLUGIN_KIND = "composer"
+REQUIRES: list[str] = []
+OPTIONAL = False
 
 
 def register(container: KernelAppContainer, context: PluginContext) -> None:

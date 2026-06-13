@@ -16,11 +16,19 @@ def build_kernel_container(
     """
     Build and configure the application kernel container.
 
-    In Phase A, plugin registrations are delegated to plugin_loader.
+    Phase B:
+    - plugin auto-discovery
+    - dependency checks
+    - load result metadata attached to container
     """
     container = KernelAppContainer()
     context = build_plugin_context(datasets_dir=datasets_dir)
-    load_enabled_plugins(container=container, context=context)
+
+    load_result = load_enabled_plugins(container=container, context=context)
+
+    # best-effort metadata attachment without assuming strict container schema
+    container.plugin_load_report = load_result.as_metadata()
+
     return container
 
 

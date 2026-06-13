@@ -14,6 +14,8 @@ from backend.kernel.runtime import KernelAppContainer
 PLUGIN_ID = "smart_fallback_radius"
 PLUGIN_VERSION = "1.0.0"
 PLUGIN_KIND = "strategy"
+REQUIRES: list[str] = []
+OPTIONAL = False
 
 
 def register(container: KernelAppContainer, context: PluginContext) -> None:

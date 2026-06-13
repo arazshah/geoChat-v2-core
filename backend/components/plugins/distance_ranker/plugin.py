@@ -9,6 +9,8 @@ from backend.kernel.runtime import KernelAppContainer
 PLUGIN_ID = "distance_ranker"
 PLUGIN_VERSION = "1.0.0"
 PLUGIN_KIND = "ranker"
+REQUIRES: list[str] = []
+OPTIONAL = True
 
 
 def register(container: KernelAppContainer, context: PluginContext) -> None:
