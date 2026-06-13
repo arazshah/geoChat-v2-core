@@ -1,0 +1,10 @@
+{
+  "plugin_id": "enhanced_anchor_resolver",
+  "version": "1.0.0",
+  "kind": "provider_wrapper",
+  "requires": [],
+  "optional": false,
+  "sdk_version": "1.0",
+  "entry_module": "backend.components.plugins.enhanced_anchor_resolver.plugin",
+  "entry_callable": "register"
+}

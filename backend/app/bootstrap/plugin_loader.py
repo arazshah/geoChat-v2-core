@@ -6,7 +6,7 @@ import importlib
 import pkgutil
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from types import ModuleType
+from pathlib import Path
 
 from backend.app.bootstrap.plugin_config import (
     DISABLED_PLUGIN_IDS,
@@ -15,17 +15,21 @@ from backend.app.bootstrap.plugin_config import (
     POLICY,
 )
 from backend.app.bootstrap.plugin_context import PluginContext
+from backend.app.bootstrap.plugin_manifest import PluginManifest, load_plugin_manifest
 from backend.kernel.runtime import KernelAppContainer
 
 
 @dataclass(slots=True)
 class PluginDescriptor:
-    module_path: str
+    manifest_path: str
     plugin_id: str
     version: str
     kind: str
     requires: list[str] = field(default_factory=list)
     optional: bool = False
+    sdk_version: str = "1.0"
+    entry_module: str = ""
+    entry_callable: str = "register"
     register: Callable[[KernelAppContainer, PluginContext], None] | None = None
 
 
@@ -40,67 +44,79 @@ class PluginLoadResult:
             "loaded": self.loaded,
             "skipped": self.skipped,
             "failed": [
-                {"plugin_id": pid, "reason": reason} for pid, reason in self.failed
+                {"plugin_id": plugin_id, "reason": reason}
+                for plugin_id, reason in self.failed
             ],
         }
 
 
-def _discover_plugin_modules(base_package: str) -> list[str]:
+def _discover_manifest_paths(base_package: str) -> list[Path]:
     """
-    Discover modules named '*.plugin' under base_package recursively.
+    Discover plugin.json files under plugin package directories.
     """
     package = importlib.import_module(base_package)
     if not hasattr(package, "__path__"):
         return []
 
-    discovered: list[str] = []
-    for mod in pkgutil.walk_packages(package.__path__, prefix=f"{base_package}."):
-        # We only load dedicated plugin entry modules.
-        if mod.name.endswith(".plugin"):
-            discovered.append(mod.name)
-    return discovered
+    manifest_paths: list[Path] = []
+
+    for mod in pkgutil.iter_modules(package.__path__, prefix=f"{base_package}."):
+        if not mod.ispkg:
+            continue
+
+        plugin_package = importlib.import_module(mod.name)
+        package_paths = list(getattr(plugin_package, "__path__", []))
+        for package_path in package_paths:
+            manifest_path = Path(package_path) / "plugin.json"
+            if manifest_path.exists():
+                manifest_paths.append(manifest_path)
+
+    return sorted(manifest_paths)
 
 
-def _read_descriptor(module: ModuleType, module_path: str) -> PluginDescriptor:
-    plugin_id = getattr(module, "PLUGIN_ID", None)
-    version = getattr(module, "PLUGIN_VERSION", "0.0.0")
-    kind = getattr(module, "PLUGIN_KIND", "unknown")
-    requires = list(getattr(module, "REQUIRES", []))
-    optional = bool(getattr(module, "OPTIONAL", False))
-    register = getattr(module, "register", None)
+def _load_descriptor_from_manifest(manifest_path: Path) -> PluginDescriptor:
+    manifest: PluginManifest = load_plugin_manifest(manifest_path)
 
-    if not plugin_id:
-        raise AttributeError(f"{module_path}: missing PLUGIN_ID")
+    module = importlib.import_module(manifest.entry_module)
+    register = getattr(module, manifest.entry_callable, None)
+
     if register is None:
-        raise AttributeError(f"{module_path}: missing register(container, context)")
+        msg = (
+            f"{manifest_path}: callable '{manifest.entry_callable}' "
+            f"not found in module '{manifest.entry_module}'"
+        )
+        raise AttributeError(msg)
 
     return PluginDescriptor(
-        module_path=module_path,
-        plugin_id=str(plugin_id),
-        version=str(version),
-        kind=str(kind),
-        requires=requires,
-        optional=optional,
+        manifest_path=str(manifest_path),
+        plugin_id=manifest.plugin_id,
+        version=manifest.version,
+        kind=manifest.kind,
+        requires=manifest.requires,
+        optional=manifest.optional,
+        sdk_version=manifest.sdk_version,
+        entry_module=manifest.entry_module,
+        entry_callable=manifest.entry_callable,
         register=register,
     )
 
 
 def _filter_enabled(descriptors: list[PluginDescriptor]) -> list[PluginDescriptor]:
     filtered: list[PluginDescriptor] = []
-    for d in descriptors:
-        if d.plugin_id in DISABLED_PLUGIN_IDS:
+    for descriptor in descriptors:
+        if descriptor.plugin_id in DISABLED_PLUGIN_IDS:
             continue
-        if ENABLED_PLUGIN_IDS and d.plugin_id not in ENABLED_PLUGIN_IDS:
+        if ENABLED_PLUGIN_IDS and descriptor.plugin_id not in ENABLED_PLUGIN_IDS:
             continue
-        filtered.append(d)
+        filtered.append(descriptor)
     return filtered
 
 
 def _order_descriptors(descriptors: list[PluginDescriptor]) -> list[PluginDescriptor]:
-    order_index = {pid: idx for idx, pid in enumerate(PLUGIN_ORDER)}
+    order_index = {plugin_id: index for index, plugin_id in enumerate(PLUGIN_ORDER)}
 
-    def sort_key(d: PluginDescriptor):
-        return (order_index.get(d.plugin_id, 10_000), d.plugin_id)
+    def sort_key(descriptor: PluginDescriptor) -> tuple[int, str]:
+        return (order_index.get(descriptor.plugin_id, 10_000), descriptor.plugin_id)
 
     return sorted(descriptors, key=sort_key)
 
@@ -108,21 +124,16 @@ def _order_descriptors(descriptors: list[PluginDescriptor]) -> list[PluginDescri
 def _resolve_dependencies(
     descriptors: list[PluginDescriptor],
 ) -> tuple[list[PluginDescriptor], list[tuple[str, str]]]:
-    """
-    Simple dependency gate:
-    - If a plugin requires missing plugin_id, mark as skipped-with-reason.
-    - No full topological sort for Phase B (we rely on PLUGIN_ORDER + deterministic order).
-    """
-    known_ids = {d.plugin_id for d in descriptors}
+    known_ids = {descriptor.plugin_id for descriptor in descriptors}
     ready: list[PluginDescriptor] = []
     skipped: list[tuple[str, str]] = []
 
-    for d in descriptors:
-        missing = [req for req in d.requires if req not in known_ids]
+    for descriptor in descriptors:
+        missing = [req for req in descriptor.requires if req not in known_ids]
         if missing:
-            skipped.append((d.plugin_id, f"missing dependencies: {missing}"))
+            skipped.append((descriptor.plugin_id, f"missing dependencies: {missing}"))
             continue
-        ready.append(d)
+        ready.append(descriptor)
 
     return ready, skipped
 
@@ -132,65 +143,59 @@ def load_enabled_plugins(
     context: PluginContext,
 ) -> PluginLoadResult:
     """
-    Phase B plugin loader:
-    - auto-discovery of *.plugin modules
-    - descriptor validation
-    - enable/disable filtering
+    Phase E plugin loader:
+    - discover plugin manifests
+    - validate manifest metadata
+    - import entry module only after manifest load
     - deterministic ordering
     - dependency gating
     - fail-fast / optional handling
     """
     result = PluginLoadResult()
 
-    module_paths = _discover_plugin_modules(POLICY.discover_package)
+    manifest_paths = _discover_manifest_paths(POLICY.discover_package)
     descriptors: list[PluginDescriptor] = []
 
-    # import + descriptor parsing
-    for module_path in module_paths:
+    for manifest_path in manifest_paths:
         try:
-            module = importlib.import_module(module_path)
-            descriptors.append(_read_descriptor(module, module_path))
+            descriptors.append(_load_descriptor_from_manifest(manifest_path))
         except Exception as exc:
-            reason = f"discovery/import error: {exc}"
-            # unknown plugin_id here; use module path as fallback id
-            result.failed.append((module_path, reason))
+            reason = f"manifest/import error: {exc}"
+            result.failed.append((str(manifest_path), reason))
             if POLICY.fail_fast:
                 raise RuntimeError(
-                    f"Plugin discovery failed for {module_path}: {exc}"
+                    f"Plugin manifest load failed for {manifest_path}: {exc}"
                 ) from exc
 
-    # filter + order + dependency check
     descriptors = _filter_enabled(descriptors)
     descriptors = _order_descriptors(descriptors)
 
     ready, dep_skipped = _resolve_dependencies(descriptors)
-    for pid, reason in dep_skipped:
-        result.skipped.append(f"{pid} ({reason})")
+    for plugin_id, reason in dep_skipped:
+        result.skipped.append(f"{plugin_id} ({reason})")
 
-    # register phase
     loaded_ids: set[str] = set()
-    for d in ready:
-        # runtime dependency gate (in case ordering still violates dependency load sequence)
-        unmet = [req for req in d.requires if req not in loaded_ids]
+    for descriptor in ready:
+        unmet = [req for req in descriptor.requires if req not in loaded_ids]
         if unmet:
             result.skipped.append(
-                f"{d.plugin_id} (unmet runtime dependencies: {unmet})"
+                f"{descriptor.plugin_id} (unmet runtime dependencies: {unmet})"
             )
             continue
 
         try:
-            assert d.register is not None
-            d.register(container, context)
-            loaded_ids.add(d.plugin_id)
-            result.loaded.append(d.plugin_id)
+            assert descriptor.register is not None
+            descriptor.register(container, context)
+            loaded_ids.add(descriptor.plugin_id)
+            result.loaded.append(descriptor.plugin_id)
         except Exception as exc:
             reason = f"register error: {exc}"
-            result.failed.append((d.plugin_id, reason))
+            result.failed.append((descriptor.plugin_id, reason))
 
-            should_raise = POLICY.fail_fast and (not d.optional)
+            should_raise = POLICY.fail_fast and (not descriptor.optional)
             if should_raise:
                 raise RuntimeError(
-                    f"Plugin register failed for {d.plugin_id}: {exc}"
+                    f"Plugin register failed for {descriptor.plugin_id}: {exc}"
                 ) from exc
 
     return result

@@ -1,0 +1,26 @@
+{
+  "anchors": [
+    {
+      "name": "میدان انقلاب",
+      "aliases": ["انقلاب", "فلکه انقلاب", "میدان انقلاب اسلامی"],
+      "lat": 37.5527,
+      "lon": 45.0759,
+      "category": "place",
+      "subcategory": "square",
+      "category_label": "میدان",
+      "icon": "🎯",
+      "color": "#dc2626"
+    },
+    {
+      "name": "میدان امام حسین",
+      "aliases": ["امام حسین", "فلکه امام حسین"],
+      "lat": 37.5460,
+      "lon": 45.0720,
+      "category": "place",
+      "subcategory": "square",
+      "category_label": "میدان",
+      "icon": "🎯",
+      "color": "#dc2626"
+    }
+  ]
+}

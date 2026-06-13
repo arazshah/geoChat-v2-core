@@ -30,6 +30,7 @@ DISABLED_PLUGIN_IDS: set[str] = set()
 # Any plugin not listed here is appended in alphabetical order.
 PLUGIN_ORDER: list[str] = [
     "core_parser",
+    "enhanced_anchor_resolver",
     "smart_fallback_radius",
     "smart_scoring_ranker",
     "distance_ranker",

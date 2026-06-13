@@ -1,0 +1,10 @@
+{
+  "plugin_id": "distance_ranker",
+  "version": "1.0.0",
+  "kind": "ranker",
+  "requires": [],
+  "optional": true,
+  "sdk_version": "1.0",
+  "entry_module": "backend.components.plugins.distance_ranker.plugin",
+  "entry_callable": "register"
+}

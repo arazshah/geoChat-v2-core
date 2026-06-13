@@ -1,0 +1,10 @@
+{
+  "plugin_id": "persian_template_composer",
+  "version": "1.0.0",
+  "kind": "composer",
+  "requires": [],
+  "optional": false,
+  "sdk_version": "1.0",
+  "entry_module": "backend.components.plugins.persian_template_composer.plugin",
+  "entry_callable": "register"
+}

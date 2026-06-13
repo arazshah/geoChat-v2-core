@@ -46,13 +46,23 @@ def register(container: KernelAppContainer, context: PluginContext) -> None:
     - create/register your component here
     - do not modify kernel internals
     \"\"\"
-    # Example:
-    # from backend.components.rankers.my_ranker import MyRanker
-    # container.rankers.register_ranker(MyRanker(), default=False)
     pass
 PYEOF
+
+cat > "${BASE_DIR}/plugin.json" <<JSONEOF
+{
+  "plugin_id": "${PLUGIN_ID}",
+  "version": "1.0.0",
+  "kind": "${PLUGIN_KIND}",
+  "requires": [],
+  "optional": false,
+  "sdk_version": "1.0",
+  "entry_module": "backend.components.plugins.${PLUGIN_ID}.plugin",
+  "entry_callable": "register"
+}
+JSONEOF
 
 echo "Created plugin scaffold at: ${BASE_DIR}"
 echo "Next steps:"
 echo "1) implement register() in ${BASE_DIR}/plugin.py"
-echo "2) run: python -m pytest tests/app/test_plugin_sdk_contract.py -v"
+echo "2) validate SDK: python -m pytest tests/app/test_plugin_sdk_contract.py -v"

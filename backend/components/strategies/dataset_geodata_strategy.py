@@ -152,7 +152,8 @@ class DatasetGeodataStrategy(BaseExecutionStrategy):
         if anchor is None:
             return marked
 
-        return [*marked, anchor]
+        marked_anchor = mark_role([anchor], "anchor")
+        return [*marked_anchor, *marked]
 
     def _search(
         self,

@@ -1,0 +1,10 @@
+{
+  "plugin_id": "core_parser",
+  "version": "1.0.0",
+  "kind": "parser",
+  "requires": [],
+  "optional": false,
+  "sdk_version": "1.0",
+  "entry_module": "backend.components.plugins.core_parser.plugin",
+  "entry_callable": "register"
+}

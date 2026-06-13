@@ -1,0 +1,10 @@
+{
+  "plugin_id": "smart_fallback_radius",
+  "version": "1.0.0",
+  "kind": "strategy",
+  "requires": [],
+  "optional": false,
+  "sdk_version": "1.0",
+  "entry_module": "backend.components.plugins.smart_fallback_radius.plugin",
+  "entry_callable": "register"
+}
