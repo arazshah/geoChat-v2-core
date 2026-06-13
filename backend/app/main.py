@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.app.api.routes.plugin_health import router as plugin_health_router
 from backend.app.api.routes.query import router as query_router
@@ -15,6 +18,9 @@ from backend.app.bootstrap.kernel_bootstrap import (
 )
 from backend.app.settings import get_settings
 from backend.kernel.runtime import KernelAppContainer, QueryPipeline
+
+WEB_DIR = Path(__file__).resolve().parent / "web"
+STATIC_DIR = WEB_DIR / "assets"
 
 
 @asynccontextmanager
@@ -58,6 +64,16 @@ def create_app() -> FastAPI:
         plugin_health_router,
         prefix=settings.api_prefix,
     )
+
+    app.mount(
+        "/static",
+        StaticFiles(directory=STATIC_DIR),
+        name="static",
+    )
+
+    @app.get("/", include_in_schema=False)
+    async def frontend_index() -> FileResponse:
+        return FileResponse(WEB_DIR / "index.html")
 
     return app
 

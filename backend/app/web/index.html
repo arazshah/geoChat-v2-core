@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>geoChat v2</title>
+
+  <!-- Leaflet CSS - no integrity to avoid hash mismatch issues during development -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+
+<body>
+  <main class="app-shell">
+    <section class="map-panel">
+      <div id="map"></div>
+
+      <div class="map-badge">
+        <span class="dot"></span>
+        geoChat v2
+      </div>
+    </section>
+
+    <aside class="side-panel">
+      <header class="brand">
+        <div>
+          <h1>geoChat v2</h1>
+          <p>جستجوی هوشمند مکان‌ها روی نقشه</p>
+        </div>
+      </header>
+
+      <section class="query-card">
+        <label for="queryInput">پرسش مکانی</label>
+
+        <textarea
+          id="queryInput"
+          rows="3"
+          placeholder="مثلاً: بانک‌های اطراف دانشگاه ارومیه"
+        ></textarea>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="datasetInput">Dataset</label>
+            <input id="datasetInput" value="urmia" />
+          </div>
+
+          <div class="field">
+            <label for="languageInput">زبان</label>
+            <input id="languageInput" value="fa" />
+          </div>
+        </div>
+
+        <button id="searchButton" type="button">
+          جستجو
+        </button>
+
+        <div class="quick-examples">
+          <button type="button" data-query="بانک‌های اطراف دانشگاه ارومیه">بانک اطراف دانشگاه</button>
+          <button type="button" data-query="داروخانه‌های نزدیک میدان انقلاب">داروخانه نزدیک میدان</button>
+          <button type="button" data-query="رستوران‌های اطراف رستوران مازو">رستوران اطراف مازو</button>
+        </div>
+      </section>
+
+      <section class="status-card">
+        <div class="status-row">
+          <span>وضعیت</span>
+          <strong id="statusText">آماده</strong>
+        </div>
+
+        <div class="status-row">
+          <span>پلاگین‌ها</span>
+          <button id="pluginHealthButton" type="button">بررسی</button>
+        </div>
+
+        <pre id="pluginHealthBox" class="plugin-health-box hidden"></pre>
+      </section>
+
+      <section class="answer-card">
+        <h2>پاسخ</h2>
+        <div id="answerBox" class="answer-box">
+          هنوز پرسشی ارسال نشده است.
+        </div>
+      </section>
+
+      <section class="results-card">
+        <div class="results-header">
+          <h2>نتایج</h2>
+          <span id="resultCount">۰ مورد</span>
+        </div>
+
+        <div id="resultsList" class="results-list">
+          <div class="empty-state">
+            نتیجه‌ای برای نمایش وجود ندارد.
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Leaflet JS - no integrity to avoid hash mismatch issues during development -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
