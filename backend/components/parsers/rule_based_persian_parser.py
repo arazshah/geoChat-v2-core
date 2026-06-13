@@ -4,48 +4,56 @@ from __future__ import annotations
 
 import re
 from typing import Any
+from uuid import uuid4
 
+from backend.components.parsers.anchor_extractor import extract_anchor
+from backend.components.parsers.category_map import detect_category, get_label_fa
+from backend.components.parsers.intent_detector import detect_intent
+from backend.components.parsers.normalizer import normalize, normalize_for_search
 from backend.kernel.contracts import BaseQueryParser
 from backend.kernel.models import QueryIR
+from backend.kernel.models.entity import Entity
+from backend.kernel.models.query_ir import ParserInfo, QueryConstraints
+from backend.kernel.models.spatial_relation import SpatialRelation
+from backend.kernel.models.vocabulary import EntityRole, RelationKind
 
 PERSIAN_DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")
 
-
-CATEGORY_SYNONYMS: dict[str, list[str]] = {
-    "pharmacy": ["داروخانه", "داروخانه‌ها", "داروخانه های"],
-    "bank": ["بانک", "بانک‌ها", "بانک های"],
-    "restaurant": ["رستوران", "رستوران‌ها", "رستوران های", "غذاخوری"],
-    "cafe": ["کافه", "کافه‌ها", "کافه های", "کافی شاپ", "قهوه"],
-    "fuel": ["پمپ بنزین", "جایگاه سوخت", "بنزین"],
-    "university": ["دانشگاه"],
-    "hotel": ["هتل", "هتل‌ها", "هتل های"],
-}
-
-
-KNOWN_ANCHORS = [
-    "دانشگاه ارومیه",
-    "رستوران مازو",
-    "میدان انقلاب",
-]
-
-
-KNOWN_TARGET_NAMES = [
+KNOWN_TARGET_NAMES: tuple[str, ...] = (
     "بانک ملی",
     "بانک ملت",
+    "بانک صادرات",
+    "بانک تجارت",
+    "بانک مسکن",
+    "بانک سپه",
+    "بانک رفاه",
+    "بانک پارسیان",
+    "بانک شهر",
+    "بانک کشاورزی",
     "داروخانه دکتر عبداللهی",
     "داروخانه مرکزی",
     "رستوران مازو",
     "دانشگاه ارومیه",
+    "دانشگاه تهران",
+    "دانشگاه اصفهان",
     "میدان انقلاب",
-]
+    "میدان امام حسین",
+    "میدان آزادی",
+    "میدان ونک",
+    "برج میلاد",
+)
 
 
 class RuleBasedPersianQueryParser(BaseQueryParser):
     """
-    Initial Persian rule-based parser.
+    Rule-based Persian query parser — Phase 10 revision.
 
-    This parser is deterministic and independent from LLM services.
-    It extracts simple metadata needed by early geospatial strategies.
+    Improvements over Phase 8:
+    - Dynamic anchor extraction (not hardcoded list).
+    - Full category map with 16 semantic types.
+    - Fills QueryIR.entities, relations, constraints properly.
+    - Richer intent detection with confidence scores.
+    - Better Persian normalization (unicode, typos, city aliases).
     """
 
     async def parse(
@@ -55,111 +63,186 @@ class RuleBasedPersianQueryParser(BaseQueryParser):
         session_id: str | None = None,
         **kwargs: Any,
     ) -> QueryIR:
-        normalized_text = normalize_persian_text(text)
-        intent = detect_intent(normalized_text)
-        anchor_name = detect_anchor_name(normalized_text)
+        normalized = normalize(text)
+        search_text = normalize_for_search(text)
 
-        target_detection_text = build_target_detection_text(
-            normalized_text,
-            intent=intent,
+        intent_str, confidence = detect_intent(normalized)
+        anchor_name = extract_anchor(normalized)
+        target_type = _detect_target_type_excluding_anchor(
+            search_text,
+            anchor_name,
+        )
+        target_name = _detect_target_name(search_text, anchor_name)
+        radius_m = _detect_radius_meters(normalized)
+
+        entities = _build_entities(
+            intent=intent_str,
+            target_type=target_type,
+            target_name=target_name,
             anchor_name=anchor_name,
+        )
+
+        relations = _build_relations(
+            intent=intent_str,
+            entities=entities,
+            radius_m=radius_m,
+        )
+
+        constraints = QueryConstraints(
+            radius_m=radius_m,
+            limit=1 if intent_str == "nearest" else None,
         )
 
         metadata: dict[str, Any] = {
             "parser": "rule_based_persian",
             "session_id": session_id or "",
-            "normalized_text": normalized_text,
-            "target_detection_text": target_detection_text,
-            "intent": intent,
-            "target_type": detect_target_type(target_detection_text),
-            "target_name": detect_target_name(target_detection_text),
+            "normalized_text": normalized,
+            "intent": intent_str,
+            "target_type": target_type,
+            "target_name": target_name,
             "anchor_name": anchor_name,
-            "radius_meters": detect_radius_meters(normalized_text),
+            "radius_meters": radius_m,
         }
 
         return QueryIR(
             raw_text=text,
             dataset_id=dataset_id,
+            session_id=session_id,
+            language="fa",
+            intent=intent_str,
+            confidence=confidence,
+            entities=entities,
+            relations=relations,
+            constraints=constraints,
+            parser_info=ParserInfo(
+                name="rule_based_persian",
+                version="2.0",
+                language="fa",
+                llm_assisted=False,
+            ),
             metadata=metadata,
         )
 
 
-def normalize_persian_text(text: str) -> str:
-    """Normalize Persian query text for simple rule-based matching."""
-    normalized = text.translate(PERSIAN_DIGITS)
-    normalized = normalized.replace("ي", "ی").replace("ك", "ک")
-    normalized = normalized.replace("‌", " ")
-    normalized = re.sub(r"\s+", " ", normalized)
-    return normalized.strip().lower()
+# ------------------------------------------------------------------ #
+# Entity builder                                                       #
+# ------------------------------------------------------------------ #
 
-
-def build_target_detection_text(
-    text: str,
+def _build_entities(
     *,
     intent: str,
+    target_type: str | None,
+    target_name: str | None,
     anchor_name: str | None,
-) -> str:
-    """
-    Remove anchor phrase from target detection text for relational queries.
+) -> list[Entity]:
+    entities: list[Entity] = []
 
-    Example:
-    "هتل های اطراف دانشگاه ارومیه"
-    should detect target_type=hotel, not university.
-    """
-    if intent not in {"nearby", "nearest"} or not anchor_name:
-        return text
+    if target_type or target_name:
+        entities.append(
+            Entity(
+                id=f"ent_{uuid4().hex[:8]}",
+                role=EntityRole.TARGET,
+                semantic_type=target_type or "unknown",
+                name=target_name,
+                confidence=0.85,
+                metadata={
+                    "label_fa": (
+                        get_label_fa(target_type) if target_type else target_name
+                    ),
+                },
+            )
+        )
 
-    normalized_anchor = normalize_persian_text(anchor_name)
-    target_text = text.replace(normalized_anchor, " ")
-    target_text = re.sub(r"\s+", " ", target_text)
+    if anchor_name and intent in {"nearby", "nearest"}:
+        entities.append(
+            Entity(
+                id=f"ent_{uuid4().hex[:8]}",
+                role=EntityRole.ANCHOR,
+                semantic_type="place",
+                name=anchor_name,
+                confidence=0.80,
+                metadata={"label_fa": anchor_name},
+            )
+        )
 
-    return target_text.strip()
-
-
-def detect_intent(text: str) -> str:
-    """Detect simple geo query intent."""
-    if "نزدیکترین" in text or "نزدیک ترین" in text:
-        return "nearest"
-
-    if "کجاست" in text or "کجا است" in text or "مکان" in text:
-        return "where_is"
-
-    if "اطراف" in text or "نزدیک" in text or "حوالی" in text:
-        return "nearby"
-
-    return "search"
-
-
-def detect_target_type(text: str) -> str | None:
-    """Detect target feature type from Persian category synonyms."""
-    for feature_type, synonyms in CATEGORY_SYNONYMS.items():
-        if any(normalize_persian_text(synonym) in text for synonym in synonyms):
-            return feature_type
-    return None
+    return entities
 
 
-def detect_target_name(text: str) -> str | None:
-    """Detect known named target from the query."""
+# ------------------------------------------------------------------ #
+# Relation builder                                                     #
+# ------------------------------------------------------------------ #
+
+def _build_relations(
+    *,
+    intent: str,
+    entities: list[Entity],
+    radius_m: float | None,
+) -> list[SpatialRelation]:
+    if intent not in {"nearby", "nearest"}:
+        return []
+
+    targets = [e for e in entities if e.role == EntityRole.TARGET]
+    anchors = [e for e in entities if e.role == EntityRole.ANCHOR]
+
+    if not targets or not anchors:
+        return []
+
+    kind = (
+        RelationKind.NEAREST
+        if intent == "nearest"
+        else RelationKind.NEARBY
+    )
+
+    return [
+        SpatialRelation(
+            kind=kind,
+            subject_id=targets[0].id,
+            reference_id=anchors[0].id,
+            radius_m=radius_m,
+            confidence=0.85,
+        )
+    ]
+
+
+# ------------------------------------------------------------------ #
+# Detection helpers                                                    #
+# ------------------------------------------------------------------ #
+
+def _detect_target_type_excluding_anchor(
+    text: str,
+    anchor_name: str | None,
+) -> str | None:
+    clean = text
+    if anchor_name:
+        clean = clean.replace(normalize(anchor_name), " ")
+        clean = re.sub(r"\s+", " ", clean).strip()
+    return detect_category(clean)
+
+
+def _detect_target_name(
+    text: str,
+    anchor_name: str | None = None,
+) -> str | None:
+    """Detect a known named target, excluding the anchor name."""
+    normalized_anchor = normalize(anchor_name) if anchor_name else None
     for name in KNOWN_TARGET_NAMES:
-        if normalize_persian_text(name) in text:
+        normalized_name = normalize(name)
+        if normalized_name in text:
+            # اگر این نام همان anchor است، به عنوان target در نظر نگیر
+            if normalized_anchor and normalized_name == normalized_anchor:
+                continue
             return name
     return None
 
 
-def detect_anchor_name(text: str) -> str | None:
-    """Detect known anchor place from the query."""
-    for anchor in KNOWN_ANCHORS:
-        if normalize_persian_text(anchor) in text:
-            return anchor
-    return None
+def _detect_radius_meters(text: str) -> float | None:
+    text = text.translate(PERSIAN_DIGITS)
 
-
-def detect_radius_meters(text: str) -> float | None:
-    """Detect radius in meters from Persian text."""
     match = re.search(
         r"(?:تا|شعاع|در شعاع)?\s*(\d+(?:\.\d+)?)\s*"
-        r"(کیلومتر|کیلومتری|km|متر|متری|m)",
+        r"(کیلومتر|کیلومتری|km|متر|متری|m)\b",
         text,
+        re.UNICODE,
     )
     if not match:
         return None
@@ -168,6 +251,6 @@ def detect_radius_meters(text: str) -> float | None:
     unit = match.group(2)
 
     if unit in {"کیلومتر", "کیلومتری", "km"}:
-        return value * 1000
+        return value * 1000.0
 
     return value
