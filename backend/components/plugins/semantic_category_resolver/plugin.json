@@ -1,0 +1,10 @@
+{
+  "plugin_id": "semantic_category_resolver",
+  "version": "1.0.0",
+  "kind": "enricher",
+  "requires": ["core_parser"],
+  "optional": false,
+  "sdk_version": "1.0",
+  "entry_module": "backend.components.plugins.semantic_category_resolver.plugin",
+  "entry_callable": "register"
+}
